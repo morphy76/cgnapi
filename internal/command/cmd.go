@@ -15,7 +15,7 @@ func Main(
 		}
 		fmt.Println("\033[1;32mToken renewed successfully!\033[0m")
 	} else {
-		return fmt.Errorf("no action specified")
+		return fmt.Errorf("no command action specified")
 	}
 	return nil
 }

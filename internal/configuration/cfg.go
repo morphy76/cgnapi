@@ -56,7 +56,7 @@ func Main(
 		}
 		fmt.Println("\033[1;32mToken initialized successfully!\033[0m")
 	} else {
-		return fmt.Errorf("no action specified")
+		return fmt.Errorf("no config action specified")
 	}
 	return nil
 }

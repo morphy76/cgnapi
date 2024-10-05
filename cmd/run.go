@@ -34,12 +34,12 @@ func init() {
 	flag.StringVar(&refreshToken, "refresh-token", "", "refresh token, to be used with -config in conjunction with -add (opt) and -init")
 	flag.BoolVar(&help, "help", false, "Show help")
 
-	flag.BoolVar(&add, "add", false, "add a new profile, to be used with -config")
-	flag.BoolVar(&remove, "remove", false, "remove an existing profile, to be used with -config")
-	flag.BoolVar(&list, "list", false, "list profiles, no need to specify -config")
-	flag.BoolVar(&initToken, "init", false, "init the refresh token for an existing profile, to be used with -config")
+	flag.BoolVar(&add, "add", false, "config action, add a new profile, to be used with -config")
+	flag.BoolVar(&remove, "remove", false, "config action, remove an existing profile, to be used with -config")
+	flag.BoolVar(&list, "list", false, "config action, list profiles, no need to specify -config")
+	flag.BoolVar(&initToken, "init", false, "config action, init the refresh token for an existing profile, to be used with -config")
 
-	flag.BoolVar(&renew, "renew", false, "command to renew the access token for the given profile")
+	flag.BoolVar(&renew, "renew", false, "command action, renew the access token for the given profile")
 
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "\033[1;34mUsage:\033[0m\n")
