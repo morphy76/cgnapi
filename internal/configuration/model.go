@@ -6,6 +6,8 @@ type Config struct {
 
 type Profile struct {
 	AuthServer        string `yaml:"auth_server,omitempty"`
-	RefreshToken      string `yaml:"refresh_token,omitempty"`
+	ClientID          string `yaml:"client_id,omitempty"`
 	CurrenAccessToken string `yaml:"current_access_token,omitempty"`
+	Realm             string `yaml:"realm,omitempty"`
+	RefreshToken      string `yaml:"refresh_token,omitempty"`
 }

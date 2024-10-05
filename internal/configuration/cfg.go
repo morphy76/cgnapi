@@ -9,7 +9,7 @@ import (
 func Main(
 	profile string,
 	add, remove, list, initToken bool,
-	authServer, refreshToken string,
+	realm, clientID, authServer, refreshToken string,
 ) error {
 	if list {
 		profiles, err := ListProfiles()
@@ -38,7 +38,7 @@ func Main(
 			fmt.Printf(rawPattern, name, cfg.AuthServer)
 		}
 	} else if add {
-		err := AddProfile(profile, authServer, refreshToken)
+		err := AddProfile(profile, realm, clientID, authServer, refreshToken)
 		if err != nil {
 			return err
 		}

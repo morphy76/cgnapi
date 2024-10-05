@@ -137,7 +137,13 @@ func ListProfiles() (map[string]Profile, error) {
 	return cfg.Profiles, nil
 }
 
-func AddProfile(name, authServer, refreshToken string) error {
+func AddProfile(name, realm, clientID, authServer, refreshToken string) error {
+	if realm == "" {
+		return fmt.Errorf("realm cannot be empty")
+	}
+	if clientID == "" {
+		return fmt.Errorf("clientID cannot be empty")
+	}
 	if authServer == "" {
 		return fmt.Errorf("authServer cannot be empty")
 	}
@@ -164,6 +170,8 @@ func AddProfile(name, authServer, refreshToken string) error {
 	cfg.Profiles[name] = Profile{
 		AuthServer:   authServer,
 		RefreshToken: refreshToken,
+		Realm:        realm,
+		ClientID:     clientID,
 	}
 
 	writeConfig(cfg)
@@ -216,6 +224,48 @@ func InitToken(name, refreshToken string) error {
 
 	profile := cfg.Profiles[name]
 	profile.RefreshToken = refreshToken
+	cfg.Profiles[name] = profile
+
+	writeConfig(cfg)
+
+	return nil
+}
+
+func GetProfile(name string) (Profile, error) {
+	err := lock()
+	if err != nil {
+		return Profile{}, err
+	}
+	defer unlock()
+
+	cfg, err := readConfig()
+	if err != nil {
+		return Profile{}, err
+	}
+
+	if profile, exists := cfg.Profiles[name]; exists {
+		return profile, nil
+	}
+
+	return Profile{}, fmt.Errorf("profile %s does not exist", name)
+}
+
+func UpdateProfile(name string, profile Profile) error {
+	err := lock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
+	cfg, err := readConfig()
+	if err != nil {
+		return err
+	}
+
+	if _, exists := cfg.Profiles[name]; !exists {
+		return fmt.Errorf("profile %s does not exist", name)
+	}
+
 	cfg.Profiles[name] = profile
 
 	writeConfig(cfg)
