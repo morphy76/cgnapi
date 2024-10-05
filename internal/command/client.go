@@ -2,62 +2,15 @@ package command
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/morphy76/cgnapi/internal/configuration"
 )
-
-func ValidateToken(name string) error {
-	profile, err := configuration.GetProfile(name)
-	if err != nil {
-		return err
-	}
-
-	if profile.RefreshToken == "" {
-		return fmt.Errorf("refresh token not initialized for profile %s", name)
-	}
-
-	if profile.CurrenAccessToken == "" {
-		return fmt.Errorf("access token not initialized for profile %s", name)
-	}
-
-	// introspectionURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token/introspect", profile.AuthServer, profile.Realm)
-	// data := fmt.Sprintf("token=%s", profile.CurrenAccessToken)
-	// req, err := http.NewRequest("POST", introspectionURL, bytes.NewBufferString(data))
-	// if err != nil {
-	// 	return fmt.Errorf("failed to create introspection request: %v", err)
-	// }
-	// req.SetBasicAuth(profile.ClientID, profile.ClientSecret)
-	// req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// client := &http.Client{}
-	// resp, err := client.Do(req)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to perform introspection request: %v", err)
-	// }
-	// defer resp.Body.Close()
-
-	// if resp.StatusCode != http.StatusOK {
-	// 	return fmt.Errorf("introspection request failed with status: %s", resp.Status)
-	// }
-
-	// var introspectionResponse struct {
-	// 	Active bool `json:"active"`
-	// }
-
-	// if err := json.NewDecoder(resp.Body).Decode(&introspectionResponse); err != nil {
-	// 	return fmt.Errorf("failed to decode introspection response: %v", err)
-	// }
-
-	// if !introspectionResponse.Active {
-	// 	return fmt.Errorf("access token is not active")
-	// }
-
-	return nil
-}
 
 func RenewToken(name string) error {
 	profile, err := configuration.GetProfile(name)
@@ -115,4 +68,77 @@ func RenewToken(name string) error {
 	}
 
 	return nil
+}
+
+func GetToken(name string, decoded bool) error {
+	profile, err := configuration.GetProfile(name)
+	if err != nil {
+		return err
+	}
+
+	if profile.CurrenAccessToken == "" {
+		return fmt.Errorf("access token not initialized for profile %s", name)
+	}
+
+	if decoded {
+		claims, err := parseToken(profile.CurrenAccessToken)
+		if err != nil {
+			return err
+		}
+
+		claimsJSON, err := json.MarshalIndent(claims, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal claims: %v", err)
+		}
+
+		fmt.Println(string(claimsJSON))
+	} else {
+		fmt.Println(profile.CurrenAccessToken)
+	}
+
+	return nil
+}
+
+func GetTokenExp(name string) error {
+	profile, err := configuration.GetProfile(name)
+	if err != nil {
+		return err
+	}
+
+	if profile.CurrenAccessToken == "" {
+		return fmt.Errorf("access token not initialized for profile %s", name)
+	}
+
+	claims, err := parseToken(profile.CurrenAccessToken)
+	if err != nil {
+		return err
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return fmt.Errorf("failed to parse exp claim")
+	}
+
+	fmt.Println(time.Unix(int64(exp), 0).Format(time.RFC3339))
+
+	return nil
+}
+
+func parseToken(token string) (map[string]interface{}, error) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid token format")
+	}
+
+	decoded, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode token: %v", err)
+	}
+
+	var claims map[string]interface{}
+	if err := json.Unmarshal(decoded, &claims); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal claims: %v", err)
+	}
+
+	return claims, nil
 }

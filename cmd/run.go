@@ -22,6 +22,8 @@ var list bool
 var initToken bool
 
 var renew bool
+var get, decoded bool
+var exp bool
 
 var help bool
 
@@ -40,6 +42,9 @@ func init() {
 	flag.BoolVar(&initToken, "init", false, "config action, init the refresh token for an existing profile, to be used with -config")
 
 	flag.BoolVar(&renew, "renew", false, "command action, renew the access token for the given profile")
+	flag.BoolVar(&get, "get", false, "command action, get the access token for the given profile")
+	flag.BoolVar(&decoded, "decoded", false, "get the decoded access token for the given profile, to be used with -get")
+	flag.BoolVar(&exp, "exp", false, "command action, get the access token expiration time for the given profile")
 
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), "\033[1;34mUsage:\033[0m\n")
@@ -51,9 +56,11 @@ func init() {
 		fmt.Fprint(flag.CommandLine.Output(), "  \033[1;32mList profiles:\033[0m\n")
 		fmt.Fprint(flag.CommandLine.Output(), "    cgnapi -list\n")
 		fmt.Fprint(flag.CommandLine.Output(), "  \033[1;32mInit refresh token for an existing profile:\033[0m\n")
-		fmt.Fprint(flag.CommandLine.Output(), "    run -config -init -p <profile_name> -refresh-token <refresh_token>\n")
+		fmt.Fprint(flag.CommandLine.Output(), "    cgnapi -config -init -p <profile_name> -refresh-token <refresh_token>\n")
 		fmt.Fprint(flag.CommandLine.Output(), "  \033[1;32mRenew the access token for an existing profile:\033[0m\n")
-		fmt.Fprint(flag.CommandLine.Output(), "    run -renew -p <profile_name>\n")
+		fmt.Fprint(flag.CommandLine.Output(), "    cgnapi -renew -p <profile_name>\n")
+		fmt.Fprint(flag.CommandLine.Output(), "  \033[1;32mGet the access token for an existing profile:\033[0m\n")
+		fmt.Fprint(flag.CommandLine.Output(), "    cgnapi -get -p <profile_name>\n")
 	}
 
 	flag.Parse()
@@ -78,7 +85,7 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		err := command.Main(profile, renew)
+		err := command.Main(profile, renew, get, decoded, exp)
 		if err != nil {
 			fmt.Println("\033[1;31m" + err.Error() + "\033[0m")
 			os.Exit(1)
